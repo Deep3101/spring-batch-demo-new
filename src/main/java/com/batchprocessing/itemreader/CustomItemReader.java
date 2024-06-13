@@ -7,6 +7,7 @@ import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,7 @@ public class CustomItemReader {
     @Bean
     public FlatFileItemReader<Customer> itemReader() {
        FlatFileItemReader<Customer> reader = new FlatFileItemReader<>();
-       reader.setResource(new FileSystemResource("/home/root435/Downloads/spring-batch-processing-demo/src/main/resources/myrecords.csv"));
+       reader.setResource(new ClassPathResource("myrecords.csv"));
        reader.setName("csv-reader");
        reader.setLinesToSkip(1);   //skipping header line
        reader.setLineMapper(lineMapper()); //take each line and convert that to java object
