@@ -27,8 +27,8 @@ public class BatchConfig {
     @Bean
     public Job runJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new JobBuilder("user-records", jobRepository)
-                .start(dataCleansingStep(jobRepository, transactionManager))
-                .next(step(jobRepository, transactionManager))
+                .start(step(jobRepository, transactionManager))
+                .next(dataCleansingStep(jobRepository, transactionManager))
                 .build();
     }
 
