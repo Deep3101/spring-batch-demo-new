@@ -8,9 +8,9 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CustomItemProcessor implements ItemProcessor<Customer, Customer>{
+public class CustomerItemProcessor implements ItemProcessor<Customer, Customer>{
 
-    private static final Logger log = LoggerFactory.getLogger(CustomItemProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(CustomerItemProcessor.class);
 
     @Override
     public Customer process(@NonNull Customer item) {

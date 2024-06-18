@@ -1,21 +1,24 @@
 package com.batchprocessing.config;
 
 import com.batchprocessing.entity.Customer;
-import com.batchprocessing.itemprocessor.CustomItemProcessor;
-import com.batchprocessing.itemreader.CustomItemReader;
-import com.batchprocessing.itemwriter.CustomItemWriter;
+
+import com.batchprocessing.itemprocessor.CustomerItemProcessor;
+import com.batchprocessing.itemreader.CustomerItemReader;
+import com.batchprocessing.itemwriter.CustomerItemWriter;
 import com.batchprocessing.tasklet.DataCleansingTasklet;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class BatchConfig {
@@ -23,45 +26,34 @@ public class BatchConfig {
     @Autowired
     private DataCleansingTasklet dataCleansingTasklet;
 
+    @Autowired
+    private DataSource dataSource;
+
 
     @Bean
-    public Job runJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-        return new JobBuilder("user-records", jobRepository)
-                .start(step(jobRepository, transactionManager))
+    public Job customerJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        return new JobBuilder("customerJob", jobRepository)
+                .start(customerStep(jobRepository, transactionManager))
                 .next(dataCleansingStep(jobRepository, transactionManager))
                 .build();
     }
 
     @Bean
     public Step dataCleansingStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("data-cleansing-step", jobRepository)
+        return new StepBuilder("dataCleansingStep", jobRepository)
                 .tasklet(dataCleansingTasklet, transactionManager)
                 .build();
     }
 
     @Bean
-    public Step step(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-        return new StepBuilder("user-step", jobRepository)
+    public Step customerStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("customerStep", jobRepository)
                 .<Customer, Customer>chunk(100, transactionManager)
-                .reader(customItemReaderBean())
-                .processor(customItemProcessor())
-                .writer(itemWriter())
+                .reader(new CustomerItemReader().customerFlatFileItemReader())
+                .processor(new CustomerItemProcessor())
+                .writer(new CustomerItemWriter(new JdbcTemplate(dataSource)))
                 .build();
     }
 
-    @Bean
-    public ItemReader<Customer> customItemReaderBean() {
-        return new CustomItemReader().itemReader();
-    }
-
-    @Bean
-    public CustomItemProcessor customItemProcessor() {
-        return new CustomItemProcessor();
-    }
-
-    @Bean
-    public ItemWriter<Customer> itemWriter() {
-        return new CustomItemWriter();
-    }
 }
 
